@@ -343,7 +343,7 @@ func Test_3Deployments_Fail(t *testing.T) {
 					assertion.WithInterval(100*time.Millisecond),
 					assertion.WithResourceNamespaceFromTestEnv(),
 					assertion.WithResourceLabels(map[string]string{"app.kubernetes.io/name": deployNames[0]}),
-					assertion.WithSetup(createGoodDeploys(deployNames)...),
+					assertion.WithSetup(createBadDeploys(deployNames)...),
 				).ExactlyNExist(3).AtLeastNAreSystemClusterCritical(4)
 			},
 		},
@@ -358,8 +358,8 @@ func Test_3Deployments_Fail(t *testing.T) {
 					assertion.WithInterval(100*time.Millisecond),
 					assertion.WithResourceNamespaceFromTestEnv(),
 					assertion.WithResourceLabels(map[string]string{"app.kubernetes.io/name": deployNames[0]}),
-					assertion.WithSetup(createGoodDeploys(deployNames)...),
-				).ExactlyNExist(3).ExactlyNHaveNoCPULimits(2)
+					assertion.WithSetup(createBadDeploys(deployNames)...),
+				).ExactlyNExist(3).ExactlyNHaveNoCPULimits(3)
 			},
 		},
 		{

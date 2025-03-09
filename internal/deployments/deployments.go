@@ -104,7 +104,7 @@ func (da DeploymentAssertion) ExactlyNAreAvailable(count int) DeploymentAssertio
 			deploys, err := da.getDeployments(ctx, t, cfg)
 			require.NoError(t, err)
 
-			if len(deploys.Items) < count {
+			if len(deploys.Items) != count {
 				return false, nil
 			}
 
