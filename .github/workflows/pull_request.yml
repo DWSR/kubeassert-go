@@ -32,7 +32,7 @@ jobs:
 
   tests:
     name: Tests
-    uses: DWSR/actions/.github/workflows/go-test-single.yml@main
+    uses: DWSR/actions/.github/workflows/go-test-matrix.yml@main
 
   autoapprove-dependabot:
     name: Auto-approve Dependabot PRs
