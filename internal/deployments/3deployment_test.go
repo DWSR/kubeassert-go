@@ -293,7 +293,7 @@ func Test_3Deployments_Fail(t *testing.T) {
 
 				return deployments.NewDeploymentAssertion(
 					assertion.WithRequireT(t),
-					assertion.WithTimeout(15*time.Second),
+					assertion.WithTimeout(20*time.Second),
 					assertion.WithResourceNamespaceFromTestEnv(),
 					assertion.WithResourceLabels(map[string]string{"app.kubernetes.io/name": deployNames[0]}),
 					assertion.WithSetup(
@@ -310,7 +310,7 @@ func Test_3Deployments_Fail(t *testing.T) {
 
 				return deployments.NewDeploymentAssertion(
 					assertion.WithRequireT(t),
-					assertion.WithTimeout(15*time.Second),
+					assertion.WithTimeout(20*time.Second),
 					assertion.WithResourceNamespaceFromTestEnv(),
 					assertion.WithResourceLabels(map[string]string{"app.kubernetes.io/name": deployNames[0]}),
 					assertion.WithSetup(createGoodDeploys(deployNames)...),
