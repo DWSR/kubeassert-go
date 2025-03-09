@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/DWSR/kubeassert-go/internal/assertion"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	policyv1 "k8s.io/api/policy/v1"
@@ -11,6 +12,16 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/features"
 	e2etypes "sigs.k8s.io/e2e-framework/pkg/types"
 )
+
+type PDBAssertion struct {
+	assertion.Assertion
+}
+
+func (pa PDBAssertion) clone() PDBAssertion {
+	return PDBAssertion{
+		Assertion: assertion.CloneAssertion(pa.Assertion),
+	}
+}
 
 func PodDisruptionBudgetExists(namespaceName, pdbName string) e2etypes.Feature {
 	return features.New("PodDisruptionBudgetExists").
