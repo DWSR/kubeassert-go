@@ -49,6 +49,10 @@ func (pa PDBAssertion) getPDBs(
 	return pdbList, nil
 }
 
+func (pa PDBAssertion) Exists() PDBAssertion {
+	return pa.ExactlyNExist(1)
+}
+
 func (pa PDBAssertion) ExactlyNExist(count int) PDBAssertion {
 	stepFn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
 		t := helpers.RequireTIfNotNil(testingT, pa.GetRequireT())
