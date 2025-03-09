@@ -4,13 +4,16 @@ import (
 	"context"
 	"testing"
 
-	"github.com/DWSR/kubeassert-go/internal/assertion"
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	policyv1 "k8s.io/api/policy/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
 	e2etypes "sigs.k8s.io/e2e-framework/pkg/types"
+
+	"github.com/DWSR/kubeassert-go/internal/assertion"
+	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
 )
 
 type PDBAssertion struct {
@@ -21,6 +24,29 @@ func (pa PDBAssertion) clone() PDBAssertion {
 	return PDBAssertion{
 		Assertion: assertion.CloneAssertion(pa.Assertion),
 	}
+}
+
+func (pa PDBAssertion) getPDBs(
+	ctx context.Context,
+	t require.TestingT,
+	cfg *envconf.Config,
+) (policyv1.PodDisruptionBudgetList, error) {
+	client := helpers.DynamicClientFromEnvconf(t, cfg)
+
+	var pdbList policyv1.PodDisruptionBudgetList
+
+	list, err := client.Resource(policyv1.SchemeGroupVersion.WithResource("poddisruptionbudgets")).
+		List(ctx, pa.ListOptions(cfg))
+	if err != nil {
+		return pdbList, err
+	}
+
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(list.UnstructuredContent(), &pdbList)
+	if err != nil {
+		return pdbList, err
+	}
+
+	return pdbList, nil
 }
 
 func PodDisruptionBudgetExists(namespaceName, pdbName string) e2etypes.Feature {
