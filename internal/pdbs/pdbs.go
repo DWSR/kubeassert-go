@@ -49,6 +49,27 @@ func (pa PDBAssertion) getPDBs(
 	return pdbList, nil
 }
 
+func (pa PDBAssertion) ExactlyNExist(count int) PDBAssertion {
+	stepFn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
+		t := helpers.RequireTIfNotNil(testingT, pa.GetRequireT())
+
+		conditionFunc := func(ctx context.Context) (bool, error) {
+			pdbs, err := pa.getPDBs(ctx, t, cfg)
+			require.NoError(t, err)
+
+			return len(pdbs.Items) == count, nil
+		}
+
+		require.NoError(t, pa.WaitForCondition(ctx, conditionFunc))
+
+		return ctx
+	}
+	res := pa.clone()
+	res.SetBuilder(res.GetBuilder().Assess("exactlyNExist", stepFn))
+
+	return res
+}
+
 func PodDisruptionBudgetExists(namespaceName, pdbName string) e2etypes.Feature {
 	return features.New("PodDisruptionBudgetExists").
 		WithLabel("type", "pdb").
