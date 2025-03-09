@@ -74,3 +74,14 @@ func PodDisruptionBudgetTargetsDeployment(namespaceName, pdbName, deployName str
 			}).
 		Feature()
 }
+
+func NewPDBAssertion(opts ...assertion.AssertionOption) PDBAssertion {
+	return PDBAssertion{
+		Assertion: assertion.NewAssertion(
+			append(
+				[]assertion.AssertionOption{assertion.WithBuilder(features.New("CRD").WithLabel("type", "poddisruptionbudget"))},
+				opts...,
+			)...,
+		),
+	}
+}
