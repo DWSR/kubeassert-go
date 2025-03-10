@@ -24,7 +24,7 @@ const (
 
 func (na NamespaceAssertion) clone() NamespaceAssertion {
 	return NamespaceAssertion{
-		Assertion: assertion.CloneAssertion(na.Assertion),
+		Assertion: assertion.Clone(na.Assertion),
 	}
 }
 
@@ -60,7 +60,7 @@ func (na NamespaceAssertion) ExactlyNExist(count int) NamespaceAssertion {
 			return len(nsList.Items) == count, nil
 		}
 
-		require.NoError(t, na.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, na, conditionFunc))
 
 		return ctx
 	}
@@ -81,7 +81,7 @@ func (na NamespaceAssertion) AtLeastNExist(count int) NamespaceAssertion {
 			return len(nsList.Items) >= count, nil
 		}
 
-		require.NoError(t, na.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, na, conditionFunc))
 
 		return ctx
 	}
@@ -117,7 +117,7 @@ func (na NamespaceAssertion) AtLeastNAreRestricted(count int) NamespaceAssertion
 			return restrictedCount >= count, nil
 		}
 
-		require.NoError(t, na.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, na, conditionFunc))
 
 		return ctx
 	}
@@ -157,7 +157,7 @@ func (na NamespaceAssertion) ExactlyNAreRestricted(count int) NamespaceAssertion
 			return restrictedCount == count, nil
 		}
 
-		require.NoError(t, na.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, na, conditionFunc))
 
 		return ctx
 	}
@@ -168,11 +168,11 @@ func (na NamespaceAssertion) ExactlyNAreRestricted(count int) NamespaceAssertion
 	return res
 }
 
-func NewNamespaceAssertion(opts ...assertion.AssertionOption) NamespaceAssertion {
+func NewNamespaceAssertion(opts ...assertion.Option) NamespaceAssertion {
 	return NamespaceAssertion{
 		Assertion: assertion.NewAssertion(
 			append(
-				[]assertion.AssertionOption{assertion.WithBuilder(features.New("Namespace").WithLabel("type", "namespace"))},
+				[]assertion.Option{assertion.WithBuilder(features.New("Namespace").WithLabel("type", "namespace"))},
 				opts...,
 			)...,
 		),

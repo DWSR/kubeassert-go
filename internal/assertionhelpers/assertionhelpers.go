@@ -13,12 +13,14 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	apimachinerywait "k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/restmapper"
 	"sigs.k8s.io/e2e-framework/klient/decoder"
 	"sigs.k8s.io/e2e-framework/klient/k8s/resources"
+	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	e2etypes "sigs.k8s.io/e2e-framework/pkg/types"
@@ -108,8 +110,8 @@ func RequireTIfNotNil(testingT *testing.T, requireT require.TestingT) require.Te
 func TestAssertions(t *testing.T, testEnv env.Environment, assertions ...assertion.Assertion) {
 	tests := make([]e2etypes.Feature, 0, len(assertions))
 
-	for _, assertion := range assertions {
-		tests = append(tests, assertion.AsFeature())
+	for _, assert := range assertions {
+		tests = append(tests, assertion.AsFeature(assert))
 	}
 
 	testEnv.Test(t, tests...)
@@ -208,4 +210,20 @@ func ApplyKustomization(kustDir string) env.Func {
 
 		return ctx, nil
 	}
+}
+
+// WaitForCondition waits for a conditionFunc to be satisfied (i.e. return true) based on the timeout and interval set
+// on the Assertion.
+func WaitForCondition(
+	ctx context.Context,
+	assert assertion.Assertion,
+	conditionFunc apimachinerywait.ConditionWithContextFunc,
+) error {
+	return wait.For(
+		conditionFunc,
+		wait.WithContext(ctx),
+		wait.WithTimeout(assert.GetTimeout()),
+		wait.WithInterval(assert.GetInterval()),
+		wait.WithImmediate(),
+	)
 }

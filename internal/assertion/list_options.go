@@ -9,7 +9,7 @@ import (
 
 type listOptionsFunc func(*commonAssertion, *envconf.Config) metav1.ListOptions
 
-func defaultListOptions(ca *commonAssertion, cfg *envconf.Config) metav1.ListOptions {
+func defaultListOptions(ca *commonAssertion, _ *envconf.Config) metav1.ListOptions {
 	return metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(labels.Set(ca.assertLabels)).String(),
 		FieldSelector: fields.SelectorFromSet(fields.Set(ca.assertFields)).String(),

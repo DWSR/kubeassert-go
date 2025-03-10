@@ -8,45 +8,46 @@ import (
 	e2etypes "sigs.k8s.io/e2e-framework/pkg/types"
 )
 
-type AssertionOption func(Assertion)
+// Option is a function that configures one or more facets of an Assertion.
+type Option func(Assertion)
 
-func WithResourceLabels(labels map[string]string) AssertionOption {
+func WithResourceLabels(labels map[string]string) Option {
 	return func(a Assertion) {
 		a.setLabels(labels)
 	}
 }
 
-func WithResourceFields(fields map[string]string) AssertionOption {
+func WithResourceFields(fields map[string]string) Option {
 	return func(a Assertion) {
 		a.setFields(fields)
 	}
 }
 
-func WithInterval(interval time.Duration) AssertionOption {
+func WithInterval(interval time.Duration) Option {
 	return func(a Assertion) {
 		a.setInterval(interval)
 	}
 }
 
-func WithTimeout(timeout time.Duration) AssertionOption {
+func WithTimeout(timeout time.Duration) Option {
 	return func(a Assertion) {
 		a.setTimeout(timeout)
 	}
 }
 
-func WithBuilder(builder *features.FeatureBuilder) AssertionOption {
+func WithBuilder(builder *features.FeatureBuilder) Option {
 	return func(a Assertion) {
 		a.SetBuilder(builder)
 	}
 }
 
-func WithRequireT(requireT require.TestingT) AssertionOption {
+func WithRequireT(requireT require.TestingT) Option {
 	return func(a Assertion) {
 		a.setRequireT(requireT)
 	}
 }
 
-func WithResourceNamespace(namespaceName string) AssertionOption {
+func WithResourceNamespace(namespaceName string) Option {
 	return func(a Assertion) {
 		newFields := a.GetFields()
 		newFields["metadata.namespace"] = namespaceName
@@ -54,13 +55,13 @@ func WithResourceNamespace(namespaceName string) AssertionOption {
 	}
 }
 
-func WithResourceNamespaceFromTestEnv() AssertionOption {
+func WithResourceNamespaceFromTestEnv() Option {
 	return func(a Assertion) {
 		a.setListOptionsFn(listOptionsWithNamespaceFromEnv)
 	}
 }
 
-func WithResourceName(name string) AssertionOption {
+func WithResourceName(name string) Option {
 	return func(a Assertion) {
 		newFields := a.GetFields()
 		newFields["metadata.name"] = name
@@ -68,7 +69,7 @@ func WithResourceName(name string) AssertionOption {
 	}
 }
 
-func WithSetup(steps ...e2etypes.StepFunc) AssertionOption {
+func WithSetup(steps ...e2etypes.StepFunc) Option {
 	return func(a Assertion) {
 		builder := a.GetBuilder()
 		for _, s := range steps {
@@ -78,7 +79,7 @@ func WithSetup(steps ...e2etypes.StepFunc) AssertionOption {
 	}
 }
 
-func WithTeardown(steps ...e2etypes.StepFunc) AssertionOption {
+func WithTeardown(steps ...e2etypes.StepFunc) Option {
 	return func(a Assertion) {
 		builder := a.GetBuilder()
 		for _, s := range steps {

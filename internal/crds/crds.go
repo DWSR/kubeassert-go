@@ -20,7 +20,7 @@ type CRDAssertion struct {
 
 func (ca CRDAssertion) clone() CRDAssertion {
 	return CRDAssertion{
-		Assertion: assertion.CloneAssertion(ca.Assertion),
+		Assertion: assertion.Clone(ca.Assertion),
 	}
 }
 
@@ -34,7 +34,7 @@ func (ca CRDAssertion) Exists() CRDAssertion {
 			return len(pods.Items) == 1, nil
 		}
 
-		require.NoError(t, ca.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, ca, conditionFunc))
 
 		return ctx
 	}
@@ -88,7 +88,7 @@ func (ca CRDAssertion) HasVersion(crdVersion string) CRDAssertion {
 			return foundVersion, nil
 		}
 
-		require.NoError(t, ca.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, ca, conditionFunc))
 
 		return ctx
 	}
@@ -99,11 +99,11 @@ func (ca CRDAssertion) HasVersion(crdVersion string) CRDAssertion {
 	return res
 }
 
-func NewCRDAssertion(opts ...assertion.AssertionOption) CRDAssertion {
+func NewCRDAssertion(opts ...assertion.Option) CRDAssertion {
 	return CRDAssertion{
 		Assertion: assertion.NewAssertion(
 			append(
-				[]assertion.AssertionOption{assertion.WithBuilder(features.New("CRD").WithLabel("type", "customresourcedefinition"))},
+				[]assertion.Option{assertion.WithBuilder(features.New("CRD").WithLabel("type", "customresourcedefinition"))},
 				opts...,
 			)...,
 		),

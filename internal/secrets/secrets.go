@@ -20,7 +20,7 @@ type SecretAssertion struct {
 
 func (sa SecretAssertion) clone() SecretAssertion {
 	return SecretAssertion{
-		Assertion: assertion.CloneAssertion(sa.Assertion),
+		Assertion: assertion.Clone(sa.Assertion),
 	}
 }
 
@@ -38,7 +38,7 @@ func (sa SecretAssertion) ExactlyNExist(count int) SecretAssertion {
 			return len(secrets.Items) == count, nil
 		}
 
-		require.NoError(t, sa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
 
 		return ctx
 	}
@@ -59,7 +59,7 @@ func (sa SecretAssertion) AtLeastNExist(count int) SecretAssertion {
 			return len(secrets.Items) >= count, nil
 		}
 
-		require.NoError(t, sa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
 
 		return ctx
 	}
@@ -127,7 +127,7 @@ func (sa SecretAssertion) ExactlyNHaveContent(count int, content map[string]stri
 			return haveContent == count, nil
 		}
 
-		require.NoError(t, sa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
 
 		return ctx
 	}
@@ -171,7 +171,7 @@ func (sa SecretAssertion) AtLeastNHaveContent(count int, content map[string]stri
 			return haveContent >= count, nil
 		}
 
-		require.NoError(t, sa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
 
 		return ctx
 	}
@@ -182,11 +182,11 @@ func (sa SecretAssertion) AtLeastNHaveContent(count int, content map[string]stri
 	return res
 }
 
-func NewSecretAssertion(opts ...assertion.AssertionOption) SecretAssertion {
+func NewSecretAssertion(opts ...assertion.Option) SecretAssertion {
 	return SecretAssertion{
 		Assertion: assertion.NewAssertion(
 			append(
-				[]assertion.AssertionOption{assertion.WithBuilder(features.New("Secret").WithLabel("type", "secret"))},
+				[]assertion.Option{assertion.WithBuilder(features.New("Secret").WithLabel("type", "secret"))},
 				opts...,
 			)...,
 		),

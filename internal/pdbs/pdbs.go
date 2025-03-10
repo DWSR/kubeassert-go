@@ -20,7 +20,7 @@ type PDBAssertion struct {
 
 func (pa PDBAssertion) clone() PDBAssertion {
 	return PDBAssertion{
-		Assertion: assertion.CloneAssertion(pa.Assertion),
+		Assertion: assertion.Clone(pa.Assertion),
 	}
 }
 
@@ -58,7 +58,7 @@ func (pa PDBAssertion) Exists() PDBAssertion {
 			return len(pdbs.Items) == 1, nil
 		}
 
-		require.NoError(t, pa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, pa, conditionFunc))
 
 		return ctx
 	}
@@ -68,11 +68,11 @@ func (pa PDBAssertion) Exists() PDBAssertion {
 	return res
 }
 
-func NewPDBAssertion(opts ...assertion.AssertionOption) PDBAssertion {
+func NewPDBAssertion(opts ...assertion.Option) PDBAssertion {
 	return PDBAssertion{
 		Assertion: assertion.NewAssertion(
 			append(
-				[]assertion.AssertionOption{assertion.WithBuilder(features.New("CRD").WithLabel("type", "poddisruptionbudget"))},
+				[]assertion.Option{assertion.WithBuilder(features.New("CRD").WithLabel("type", "poddisruptionbudget"))},
 				opts...,
 			)...,
 		),

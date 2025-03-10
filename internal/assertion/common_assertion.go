@@ -1,14 +1,11 @@
 package assertion
 
 import (
-	"context"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	apimachinerywait "k8s.io/apimachinery/pkg/util/wait"
-	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
 )
@@ -75,12 +72,9 @@ func (ca *commonAssertion) setRequireT(requireT require.TestingT) {
 	ca.requireT = requireT
 }
 
+//nolint:ireturn
 func (ca *commonAssertion) GetRequireT() require.TestingT {
 	return ca.requireT
-}
-
-func (ca *commonAssertion) AsFeature() features.Feature {
-	return ca.builder.Feature()
 }
 
 func (ca *commonAssertion) setListOptionsFn(fn listOptionsFunc) {
@@ -91,6 +85,7 @@ func (ca *commonAssertion) ListOptions(cfg *envconf.Config) metav1.ListOptions {
 	return ca.listOptionsFn(ca, cfg)
 }
 
+//nolint:ireturn
 func (ca *commonAssertion) clone() Assertion {
 	return &commonAssertion{
 		builder:           ca.builder,
@@ -104,21 +99,14 @@ func (ca *commonAssertion) clone() Assertion {
 	}
 }
 
-func (ca *commonAssertion) WaitForCondition(ctx context.Context, conditionFunc apimachinerywait.ConditionWithContextFunc) error {
-	return wait.For(
-		conditionFunc,
-		wait.WithContext(ctx),
-		wait.WithTimeout(ca.timeout),
-		wait.WithInterval(ca.interval),
-		wait.WithImmediate(),
-	)
-}
-
-func NewAssertion(opts ...AssertionOption) Assertion {
+// NewAssertion creates a new Assertion with the provided options.
+//
+//nolint:ireturn
+func NewAssertion(opts ...Option) Assertion {
 	assertion := commonAssertion{
 		builder:       features.New("default"),
-		assertFields:  map[string]string{},
-		assertLabels:  map[string]string{},
+		assertFields:  make(map[string]string),
+		assertLabels:  make(map[string]string),
 		timeout:       defaultTimeout,
 		interval:      defaultInterval,
 		requireT:      nil,

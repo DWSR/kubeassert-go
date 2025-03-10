@@ -66,7 +66,7 @@ func Test_3Pod_Success(t *testing.T) {
 	features := make([]features.Feature, 0)
 
 	for _, a := range testCases {
-		features = append(features, a.assertion.AsFeature())
+		features = append(features, assertion.AsFeature(a.assertion))
 	}
 
 	testEnv.TestInParallel(t, features...)
@@ -143,7 +143,7 @@ func Test_3Pod_Fail(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockT := &testhelpers.MockT{}
-			testEnv.Test(t, tc.failingAssertion(mockT).AsFeature())
+			testEnv.Test(t, assertion.AsFeature(tc.failingAssertion(mockT)))
 			assert.True(t, mockT.Failed)
 		})
 	}

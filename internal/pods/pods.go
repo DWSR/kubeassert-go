@@ -20,7 +20,7 @@ type PodAssertion struct {
 
 func (pa PodAssertion) clone() PodAssertion {
 	return PodAssertion{
-		Assertion: assertion.CloneAssertion(pa.Assertion),
+		Assertion: assertion.Clone(pa.Assertion),
 	}
 }
 
@@ -38,7 +38,7 @@ func (pa PodAssertion) ExactlyNExist(count int) PodAssertion {
 			return len(pods.Items) == count, nil
 		}
 
-		require.NoError(t, pa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, pa, conditionFunc))
 
 		return ctx
 	}
@@ -59,7 +59,7 @@ func (pa PodAssertion) AtLeastNExist(count int) PodAssertion {
 			return len(pods.Items) >= count, nil
 		}
 
-		require.NoError(t, pa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, pa, conditionFunc))
 
 		return ctx
 	}
@@ -122,7 +122,7 @@ func (pa PodAssertion) ExactlyNAreReady(count int) PodAssertion {
 			return readyCount == count, nil
 		}
 
-		require.NoError(t, pa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, pa, conditionFunc))
 
 		return ctx
 	}
@@ -159,7 +159,7 @@ func (pa PodAssertion) AtLeastNAreReady(count int) PodAssertion {
 			return readyCount >= count, nil
 		}
 
-		require.NoError(t, pa.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, pa, conditionFunc))
 
 		return ctx
 	}
@@ -170,11 +170,11 @@ func (pa PodAssertion) AtLeastNAreReady(count int) PodAssertion {
 	return res
 }
 
-func NewPodAssertion(opts ...assertion.AssertionOption) PodAssertion {
+func NewPodAssertion(opts ...assertion.Option) PodAssertion {
 	return PodAssertion{
 		Assertion: assertion.NewAssertion(
 			append(
-				[]assertion.AssertionOption{assertion.WithBuilder(features.New("Pod").WithLabel("type", "pod"))},
+				[]assertion.Option{assertion.WithBuilder(features.New("Pod").WithLabel("type", "pod"))},
 				opts...,
 			)...,
 		),

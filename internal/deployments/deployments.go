@@ -22,7 +22,7 @@ type DeploymentAssertion struct {
 
 func (da DeploymentAssertion) clone() DeploymentAssertion {
 	return DeploymentAssertion{
-		Assertion: assertion.CloneAssertion(da.Assertion),
+		Assertion: assertion.Clone(da.Assertion),
 	}
 }
 
@@ -40,7 +40,7 @@ func (da DeploymentAssertion) ExactlyNExist(count int) DeploymentAssertion {
 			return len(deploys.Items) == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -61,7 +61,7 @@ func (da DeploymentAssertion) AtLeastNExist(count int) DeploymentAssertion {
 			return len(deploys.Items) >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -121,7 +121,7 @@ func (da DeploymentAssertion) ExactlyNAreAvailable(count int) DeploymentAssertio
 			return availableCount == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -157,7 +157,7 @@ func (da DeploymentAssertion) AtLeastNAreAvailable(count int) DeploymentAssertio
 			return availableCount >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -195,7 +195,7 @@ func (da DeploymentAssertion) ExactlyNAreSystemClusterCritical(count int) Deploy
 			return systemClusterCriticalCount == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -229,7 +229,7 @@ func (da DeploymentAssertion) AtLeastNAreSystemClusterCritical(count int) Deploy
 			return systemClusterCriticalCount >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -277,7 +277,7 @@ func (da DeploymentAssertion) ExactlyNHaveNoCPULimits(count int) DeploymentAsser
 			return hasNoCPULimits == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -321,7 +321,7 @@ func (da DeploymentAssertion) AtLeastNHaveNoCPULimits(count int) DeploymentAsser
 			return hasNoCPULimits >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -372,7 +372,7 @@ func (da DeploymentAssertion) ExactlyNHaveMemoryLimitsEqualToRequests(count int)
 			return hasMemoryLimitsEqualToRequests == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -419,7 +419,7 @@ func (da DeploymentAssertion) AtLeastNHaveMemoryLimitsEqualToRequests(count int)
 			return hasMemoryLimitsEqualToRequests >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -467,7 +467,7 @@ func (da DeploymentAssertion) ExactlyNHaveMemoryLimits(count int) DeploymentAsse
 			return hasMemoryLimits == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -511,7 +511,7 @@ func (da DeploymentAssertion) AtLeastNHaveMemoryLimits(count int) DeploymentAsse
 			return hasMemoryLimits >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -559,7 +559,7 @@ func (da DeploymentAssertion) ExactlyNHaveMemoryRequests(count int) DeploymentAs
 			return hasMemoryRequests == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -603,7 +603,7 @@ func (da DeploymentAssertion) AtLeastNHaveMemoryRequests(count int) DeploymentAs
 			return hasMemoryRequests >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -651,7 +651,7 @@ func (da DeploymentAssertion) ExactlyNHaveCPURequests(count int) DeploymentAsser
 			return hasCPURequests == count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -695,7 +695,7 @@ func (da DeploymentAssertion) AtLeastNHaveCPURequests(count int) DeploymentAsser
 			return hasCPURequests >= count, nil
 		}
 
-		require.NoError(t, da.WaitForCondition(ctx, conditionFunc))
+		require.NoError(t, helpers.WaitForCondition(ctx, da, conditionFunc))
 
 		return ctx
 	}
@@ -706,11 +706,11 @@ func (da DeploymentAssertion) AtLeastNHaveCPURequests(count int) DeploymentAsser
 	return res
 }
 
-func NewDeploymentAssertion(opts ...assertion.AssertionOption) DeploymentAssertion {
+func NewDeploymentAssertion(opts ...assertion.Option) DeploymentAssertion {
 	return DeploymentAssertion{
 		Assertion: assertion.NewAssertion(
 			append(
-				[]assertion.AssertionOption{assertion.WithBuilder(features.New("Deployment").WithLabel("type", "deployment"))},
+				[]assertion.Option{assertion.WithBuilder(features.New("Deployment").WithLabel("type", "deployment"))},
 				opts...,
 			)...,
 		),
