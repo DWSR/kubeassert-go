@@ -1,3 +1,5 @@
+// testhelpers contains helper functions specifically for testing assertion functionality. Any code that could be
+// useful to consumers of kubeassert should go in the assertionhelpers package.
 package testhelpers
 
 import (
@@ -14,17 +16,25 @@ import (
 )
 
 type (
+	// MockT implements the require.TestingT interface and enables the detection of failing assert/require statements.
+	// This enables testing assertions for expected failures.
 	MockT struct {
 		Failed bool
 	}
 )
 
-func (t *MockT) Errorf(_ string, _ ...interface{}) {}
+const randomNamespaceNameLength = 20
 
+// Errorf is a no-op function that satisfies the require.TestingT interface.
+func (*MockT) Errorf(_ string, _ ...interface{}) {}
+
+// FailNow sets the Failed field to true, indicating that a failing assertion was detected.
 func (t *MockT) FailNow() {
 	t.Failed = true
 }
 
+// CreateNamespaceBeforeEachFeature is a FeatureEnvFunc that creates a namespace. This helps run
+// Features in isolation without requiring that features handle their own setup or teardown.
 func CreateNamespaceBeforeEachFeature(namespaceName string) e2etypes.FeatureEnvFunc {
 	return func(ctx context.Context, cfg *envconf.Config, _ *testing.T, _ e2etypes.Feature) (context.Context, error) {
 		namespace := corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}
@@ -38,21 +48,29 @@ func CreateNamespaceBeforeEachFeature(namespaceName string) e2etypes.FeatureEnvF
 			return ctx, err
 		}
 
-		cfg = cfg.WithNamespace(namespaceName)
+		_ = cfg.WithNamespace(namespaceName)
 
 		return context.WithValue(ctx, envfuncs.NamespaceContextKey(namespaceName), namespace), nil
 	}
 }
 
+// DeleteNamespaceBeforeEachFeature is a FeatureEnvFunc that deletes a namespace. This helps run
+// Features in isolation without requiring that features handle their own setup or teardown.
 func DeleteNamespaceBeforeEachFeature(namespaceName string) e2etypes.FeatureEnvFunc {
 	return func(ctx context.Context, cfg *envconf.Config, _ *testing.T, _ e2etypes.Feature) (context.Context, error) {
-		var ns corev1.Namespace
+		var namespace corev1.Namespace
 
 		nsFromCtx := ctx.Value(envfuncs.NamespaceContextKey(namespaceName))
 		if nsFromCtx == nil {
-			ns = corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}
+			namespace = corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}
 		} else {
-			ns = nsFromCtx.(corev1.Namespace)
+			var ok bool
+
+			namespace, ok = nsFromCtx.(corev1.Namespace)
+
+			if !ok {
+				panic("namespace is not of type corev1.Namespace")
+			}
 		}
 
 		client, err := cfg.NewClient()
@@ -60,7 +78,7 @@ func DeleteNamespaceBeforeEachFeature(namespaceName string) e2etypes.FeatureEnvF
 			return ctx, err
 		}
 
-		if err := client.Resources().Delete(ctx, &ns); err != nil {
+		if err := client.Resources().Delete(ctx, &namespace); err != nil {
 			return ctx, err
 		}
 
@@ -70,12 +88,15 @@ func DeleteNamespaceBeforeEachFeature(namespaceName string) e2etypes.FeatureEnvF
 	}
 }
 
+// CreateRandomNamespaceBeforeEachFeature is a FeatureEnvFunc that creates a namespace with a random name.
 func CreateRandomNamespaceBeforeEachFeature() e2etypes.FeatureEnvFunc {
 	return func(ctx context.Context, cfg *envconf.Config, t *testing.T, feat e2etypes.Feature) (context.Context, error) {
-		return CreateNamespaceBeforeEachFeature(envconf.RandomName("test", 20))(ctx, cfg, t, feat)
+		return CreateNamespaceBeforeEachFeature(envconf.RandomName("test", randomNamespaceNameLength))(ctx, cfg, t, feat)
 	}
 }
 
+// DeleteRandomNamespaceAfterEachFeature is a FeatureEnvFunc that deletes the namespace set in the test environment
+// after each feature.
 func DeleteRandomNamespaceAfterEachFeature() e2etypes.FeatureEnvFunc {
 	return func(ctx context.Context, cfg *envconf.Config, t *testing.T, feat e2etypes.Feature) (context.Context, error) {
 		nsName := cfg.Namespace()
@@ -84,6 +105,7 @@ func DeleteRandomNamespaceAfterEachFeature() e2etypes.FeatureEnvFunc {
 	}
 }
 
+// MutateResourceName is a DecodeOption that mutates the name of a resource.
 func MutateResourceName(resourceName string) decoder.DecodeOption {
 	return decoder.MutateOption(func(obj k8s.Object) error {
 		obj.SetName(resourceName)
