@@ -1,3 +1,4 @@
+// assertionhelpers contains functionality that aids in the creation and use of assertions.
 package assertionhelpers
 
 import (
@@ -103,38 +104,43 @@ func CreateResourceFromPathWithNamespaceFromEnv(
 	}
 }
 
+// CreateResourceFromPath creates a resource from a file at the provided path.
 func CreateResourceFromPath(resourcePath string, decoderOpts ...decoder.DecodeOption) e2etypes.StepFunc {
 	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-		r, err := resources.New(cfg.Client().RESTConfig())
+		res, err := resources.New(cfg.Client().RESTConfig())
 		require.NoError(t, err)
 
 		file, err := os.Open(filepath.Clean(resourcePath))
 		require.NoError(t, err)
+
 		defer func() { _ = file.Close() }()
 
-		err = decoder.DecodeEach(ctx, file, decoder.CreateHandler(r), decoderOpts...)
+		err = decoder.DecodeEach(ctx, file, decoder.CreateHandler(res), decoderOpts...)
 		require.NoError(t, err)
 
 		return ctx
 	}
 }
 
+// DeleteResourceFromPath deletes a resource from a file at the provided path.
 func DeleteResourceFromPath(resourcePath string, decoderOpts ...decoder.DecodeOption) e2etypes.StepFunc {
 	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-		r, err := resources.New(cfg.Client().RESTConfig())
+		res, err := resources.New(cfg.Client().RESTConfig())
 		require.NoError(t, err)
 
 		file, err := os.Open(filepath.Clean(resourcePath))
 		require.NoError(t, err)
+
 		defer func() { _ = file.Close() }()
 
-		err = decoder.DecodeEach(ctx, file, decoder.DeleteHandler(r), decoderOpts...)
+		err = decoder.DecodeEach(ctx, file, decoder.DeleteHandler(res), decoderOpts...)
 		require.NoError(t, err)
 
 		return ctx
 	}
 }
 
+// Sleep returns a StepFunc that sleeps for the provided duration.
 func Sleep(sleepTime time.Duration) e2etypes.StepFunc {
 	return func(ctx context.Context, _ *testing.T, _ *envconf.Config) context.Context {
 		time.Sleep(sleepTime)
@@ -143,6 +149,7 @@ func Sleep(sleepTime time.Duration) e2etypes.StepFunc {
 	}
 }
 
+// DynamicClientFromEnvconf creates a dynamic client from the environment configuration.
 func DynamicClientFromEnvconf(t require.TestingT, cfg *envconf.Config) *dynamic.DynamicClient {
 	klient, err := cfg.NewClient()
 	require.NoError(t, err)
@@ -153,6 +160,10 @@ func DynamicClientFromEnvconf(t require.TestingT, cfg *envconf.Config) *dynamic.
 	return client
 }
 
+// RequireTIfNotNil returns the require.TestingT object if it is not nil, otherwise it returns the provided testing.T
+// object. This is primarily intended to enable injection of a mock for testing assertion code fails as expected.
+//
+//nolint:ireturn
 func RequireTIfNotNil(testingT *testing.T, requireT require.TestingT) require.TestingT {
 	if requireT != nil {
 		return requireT
@@ -161,6 +172,7 @@ func RequireTIfNotNil(testingT *testing.T, requireT require.TestingT) require.Te
 	return testingT
 }
 
+// TestAssertions tests the provided assertions.
 func TestAssertions(t *testing.T, testEnv env.Environment, assertions ...assertion.Assertion) {
 	tests := make([]e2etypes.Feature, 0, len(assertions))
 
@@ -171,6 +183,11 @@ func TestAssertions(t *testing.T, testEnv env.Environment, assertions ...asserti
 	testEnv.Test(t, tests...)
 }
 
+// ApplyKustomization applies a kustomization at the provided directory.
+//
+// TODO: refactor this function to be more testable and also simpler
+//
+//nolint:funlen,cyclop
 func ApplyKustomization(kustDir string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		diskFS := filesys.MakeFsOnDisk()
