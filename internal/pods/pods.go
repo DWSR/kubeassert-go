@@ -1,3 +1,4 @@
+// pods contains assertions for Kubernetes Pods.
 package pods
 
 import (
@@ -15,7 +16,12 @@ import (
 
 // return default value instead of a nil pointer so that negative assertions (i.e. testing for false positives) can use
 // a mock require.TestingT object.
-func getPods(ctx context.Context, t require.TestingT, cfg *envconf.Config, listOpts metav1.ListOptions) (corev1.PodList, error) {
+func getPods(
+	ctx context.Context,
+	t require.TestingT,
+	cfg *envconf.Config,
+	listOpts metav1.ListOptions,
+) (corev1.PodList, error) {
 	client := helpers.DynamicClientFromEnvconf(t, cfg)
 
 	var pods corev1.PodList
