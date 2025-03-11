@@ -13,6 +13,7 @@ import (
 	"github.com/DWSR/kubeassert-go/internal/testhelpers"
 )
 
+//nolint:gosec
 const secretPath = "./testdata/secret.yaml"
 
 var testEnv env.Environment

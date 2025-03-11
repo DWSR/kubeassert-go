@@ -1,84 +1,39 @@
+// secrets contains assertions for Kubernetes Secrets.
 package secrets
 
 import (
 	"context"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
-	"sigs.k8s.io/e2e-framework/pkg/features"
 
 	"github.com/DWSR/kubeassert-go/internal/assertion"
 	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
 )
 
-// SecretAssertion is a wrapper around the assertion.Assertion type and provides a set of assertions for Kubernetes
-// Secrets.
-type SecretAssertion struct {
-	assertion.Assertion
-}
+func secretHasContent(secret corev1.Secret, content map[string]string) bool {
+	hasContent := true
 
-func (sa SecretAssertion) clone() SecretAssertion {
-	return SecretAssertion{
-		Assertion: assertion.Clone(sa.Assertion),
-	}
-}
+	for key, value := range content {
+		secData, ok := secret.Data[key]
+		if !ok || string(secData) != value {
+			hasContent = false
 
-// Exists asserts that exactly one Secret exists in the cluster that matches the provided options.
-func (sa SecretAssertion) Exists() SecretAssertion {
-	return sa.ExactlyNExist(1)
-}
-
-// ExactlyNExist asserts that exactly N Secrets exist in the cluster that match the provided options.
-func (sa SecretAssertion) ExactlyNExist(count int) SecretAssertion {
-	stepFn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, sa.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			secrets, err := sa.getSecrets(ctx, t, cfg)
-			require.NoError(t, err)
-
-			return len(secrets.Items) == count, nil
+			break
 		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
-
-		return ctx
 	}
 
-	res := sa.clone()
-	res.SetBuilder(res.GetBuilder().Assess("exactlyNExist", stepFn))
-
-	return res
+	return hasContent
 }
 
-// AtLeastNExist asserts that at least N Secrets exist in the cluster that match the provided options.
-func (sa SecretAssertion) AtLeastNExist(count int) SecretAssertion {
-	stepFn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, sa.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			secrets, err := sa.getSecrets(ctx, t, cfg)
-			require.NoError(t, err)
-
-			return len(secrets.Items) >= count, nil
-		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
-
-		return ctx
-	}
-
-	res := sa.clone()
-	res.SetBuilder(res.GetBuilder().Assess("atLeastNExist", stepFn))
-
-	return res
-}
-
-func (sa SecretAssertion) getSecrets(
+func getSecrets(
 	ctx context.Context,
 	t require.TestingT,
 	cfg *envconf.Config,
+	listOpts metav1.ListOptions,
 ) (corev1.SecretList, error) {
 	client := helpers.DynamicClientFromEnvconf(t, cfg)
 
@@ -86,7 +41,7 @@ func (sa SecretAssertion) getSecrets(
 
 	list, err := client.
 		Resource(corev1.SchemeGroupVersion.WithResource("secrets")).
-		List(ctx, sa.ListOptions(cfg))
+		List(ctx, listOpts)
 	if err != nil {
 		return secrets, err
 	}
@@ -99,112 +54,48 @@ func (sa SecretAssertion) getSecrets(
 	return secrets, nil
 }
 
-// HasContent asserts that exactly one Secret in the cluster contains the provided content. This match is not exclusive
-// meaning that the Secret can contain additional content.
-func (sa SecretAssertion) HasContent(content map[string]string) SecretAssertion {
-	return sa.ExactlyNHaveContent(1, content)
-}
-
-// ExactlyNHaveContent asserts that exactly N Secrets in the cluster contain the provided content. This match is not
-// exclusive meaning that the Secrets can contain additional content.
-func (sa SecretAssertion) ExactlyNHaveContent(count int, content map[string]string) SecretAssertion {
-	stepFn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, sa.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			secrets, err := sa.getSecrets(ctx, t, cfg)
+func exist() helpers.ConditionFuncFactory {
+	return func(
+		t require.TestingT,
+		assert assertion.Assertion,
+		cfg *envconf.Config,
+		count int,
+		itemCountFn, _ helpers.IntCompareFunc,
+	) helpers.ConditionFunc {
+		return func(ctx context.Context) (bool, error) {
+			secrets, err := getSecrets(ctx, t, cfg, assert.ListOptions(cfg))
 			require.NoError(t, err)
 
-			if len(secrets.Items) != count {
+			return itemCountFn(len(secrets.Items), count), nil
+		}
+	}
+}
+
+func haveContent(content map[string]string) helpers.ConditionFuncFactory {
+	return func(
+		t require.TestingT,
+		assert assertion.Assertion,
+		cfg *envconf.Config,
+		count int,
+		itemCountFn, resultFn helpers.IntCompareFunc,
+	) helpers.ConditionFunc {
+		return func(ctx context.Context) (bool, error) {
+			secrets, err := getSecrets(ctx, t, cfg, assert.ListOptions(cfg))
+			require.NoError(t, err)
+
+			if itemCountFn(len(secrets.Items), count) {
 				return false, nil
 			}
 
 			haveContent := 0
 
 			for _, secret := range secrets.Items {
-				hasContent := true
-
-				for key, value := range content {
-					secData, ok := secret.Data[key]
-					if !ok || string(secData) != value {
-						hasContent = false
-
-						break
-					}
-				}
-
-				if hasContent {
+				if secretHasContent(secret, content) {
 					haveContent++
 				}
 			}
 
-			return haveContent == count, nil
+			return resultFn(haveContent, count), nil
 		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
-
-		return ctx
-	}
-
-	res := sa.clone()
-	res.SetBuilder(res.GetBuilder().Assess("exactlyNHaveContent", stepFn))
-
-	return res
-}
-
-// AtLeastNHaveContent asserts that at least N Secrets in the cluster contain the provided content. This match is not
-// exclusive meaning that the Secrets can contain additional content.
-func (sa SecretAssertion) AtLeastNHaveContent(count int, content map[string]string) SecretAssertion {
-	stepFn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, sa.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			secrets, err := sa.getSecrets(ctx, t, cfg)
-			require.NoError(t, err)
-
-			if len(secrets.Items) < count {
-				return false, nil
-			}
-
-			haveContent := 0
-
-			for _, secret := range secrets.Items {
-				hasContent := true
-
-				for key, value := range content {
-					secData, ok := secret.Data[key]
-					if !ok || string(secData) != value {
-						hasContent = false
-
-						break
-					}
-				}
-
-				if hasContent {
-					haveContent++
-				}
-			}
-
-			return haveContent >= count, nil
-		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, sa, conditionFunc))
-
-		return ctx
-	}
-
-	res := sa.clone()
-	res.SetBuilder(res.GetBuilder().Assess("atLeastNHaveContent", stepFn))
-
-	return res
-}
-
-// NewSecretAssertion creates a new SecretAssertion with the provided options.
-func NewSecretAssertion(opts ...assertion.Option) SecretAssertion {
-	return SecretAssertion{
-		Assertion: assertion.NewAssertion(
-			append(
-				[]assertion.Option{assertion.WithBuilder(features.New("Secret").WithLabel("type", "secret"))},
-				opts...,
-			)...,
-		),
 	}
 }

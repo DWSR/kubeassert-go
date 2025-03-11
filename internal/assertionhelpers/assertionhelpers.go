@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/e2e-framework/klient/wait"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
+	"sigs.k8s.io/e2e-framework/pkg/features"
 	e2etypes "sigs.k8s.io/e2e-framework/pkg/types"
 	"sigs.k8s.io/kustomize/api/krusty"
 	kusttypes "sigs.k8s.io/kustomize/api/types"
@@ -31,18 +32,71 @@ import (
 	"github.com/DWSR/kubeassert-go/internal/assertion"
 )
 
-func CreateResourceFromPathWithNamespaceFromEnv(resourcePath string, decoderOpts ...decoder.DecodeOption) e2etypes.StepFunc {
+type (
+	// IntCompareFunc is a function that compares two integers and returns a boolean.
+	IntCompareFunc func(int, int) bool
+
+	// ConditionFunc is a function that returns a boolean based on a condition being satisfied.
+	ConditionFunc = apimachinerywait.ConditionWithContextFunc
+
+	// ConditionFuncFactory is a function that returns a ConditionFunc.
+	ConditionFuncFactory = func(
+		require.TestingT, assertion.Assertion, *envconf.Config, int, IntCompareFunc, IntCompareFunc,
+	) ConditionFunc
+
+	// StepFunc is a function that performs a step in a test.
+	StepFunc = features.Func
+)
+
+var (
+	// IntCompareFuncLessThan is a function that compares two integers and returns true if the first integer is less
+	// than the second.
+	IntCompareFuncLessThan IntCompareFunc = func(a, b int) bool { return a < b }
+
+	// IntCompareFuncLessThanOrEqualTo is a function that compares two integers and returns true if the first integer is
+	// less than or equal to the second.
+	IntCompareFuncLessThanOrEqualTo IntCompareFunc = func(a, b int) bool { return a <= b }
+
+	// IntCompareFuncEqualTo is a function that compares two integers and returns true if the first integer is equal to
+	// the second.
+	IntCompareFuncEqualTo IntCompareFunc = func(a, b int) bool { return a == b }
+
+	// IntCompareFuncGreaterThan is a function that compares two integers and returns true if the first integer is
+	// greater than the second.
+	IntCompareFuncGreaterThan IntCompareFunc = func(a, b int) bool { return a > b }
+
+	// IntCompareFuncGreaterThanOrEqualTo is a function that compares two integers and returns true if the first integer
+	// is greater than or equal to the second.
+	IntCompareFuncGreaterThanOrEqualTo IntCompareFunc = func(a, b int) bool { return a >= b }
+
+	// IntCompareFuncNotEqualTo is a function that compares two integers and returns true if the first integer is not
+	// equal to the second.
+	IntCompareFuncNotEqualTo IntCompareFunc = func(a, b int) bool { return a != b }
+)
+
+// CreateResourceFromPathWithNamespaceFromEnv creates a resource from a file at the provided path and sets the
+// resource's namespace to the one provided in the environment configuration.
+func CreateResourceFromPathWithNamespaceFromEnv(
+	resourcePath string,
+	decoderOpts ...decoder.DecodeOption,
+) e2etypes.StepFunc {
 	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
 		nsName := cfg.Namespace()
 
-		r, err := resources.New(cfg.Client().RESTConfig())
+		res, err := resources.New(cfg.Client().RESTConfig())
 		require.NoError(t, err)
 
 		file, err := os.Open(filepath.Clean(resourcePath))
 		require.NoError(t, err)
+
 		defer func() { _ = file.Close() }()
 
-		err = decoder.DecodeEach(ctx, file, decoder.CreateHandler(r), append(decoderOpts, decoder.MutateNamespace(nsName))...)
+		err = decoder.DecodeEach(
+			ctx,
+			file,
+			decoder.CreateHandler(res),
+			append(decoderOpts, decoder.MutateNamespace(nsName))...,
+		)
 		require.NoError(t, err)
 
 		return ctx
@@ -169,6 +223,7 @@ func ApplyKustomization(kustDir string) env.Func {
 			restMapper := restmapper.NewDiscoveryRESTMapper(gr)
 
 			slog.Debug("transmuting resMap resource to unstructured")
+
 			yamlBytes, err := res.AsYAML()
 			if err != nil {
 				return ctx, err
@@ -226,4 +281,23 @@ func WaitForCondition(
 		wait.WithInterval(assert.GetInterval()),
 		wait.WithImmediate(),
 	)
+}
+
+// AsStepFunc returns a StepFunc that waits for a condition to be satisfied based on the provided ConditionFuncFactory.
+// The count parameter is used to determine the number of resources that should satisfy the condition. The itemCountFn
+// parameter is used to evalute the number of resources under consideration to satisfy the condition. The resultFn
+// is used to evaluate the number of items that satisfy the condition relative to the count.
+func AsStepFunc(
+	assert assertion.Assertion,
+	conditionFactory ConditionFuncFactory,
+	count int,
+	itemCountFn, resultFn IntCompareFunc,
+) StepFunc {
+	return func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
+		t := RequireTIfNotNil(testingT, assert.GetRequireT())
+
+		require.NoError(t, WaitForCondition(ctx, assert, conditionFactory(t, assert, cfg, count, itemCountFn, resultFn)))
+
+		return ctx
+	}
 }
