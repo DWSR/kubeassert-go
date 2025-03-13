@@ -1,3 +1,4 @@
+// namespace contains assertions for Kubernetes Namespaces.
 package namespaces
 
 import (
@@ -13,7 +14,12 @@ import (
 	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
 )
 
-func getNamespaces(ctx context.Context, t require.TestingT, cfg *envconf.Config, listOpts metav1.ListOptions) (corev1.NamespaceList, error) {
+func getNamespaces(
+	ctx context.Context,
+	t require.TestingT,
+	cfg *envconf.Config,
+	listOpts metav1.ListOptions,
+) (corev1.NamespaceList, error) {
 	client := helpers.DynamicClientFromEnvconf(t, cfg)
 
 	var nsList corev1.NamespaceList
@@ -44,6 +50,38 @@ func exist() helpers.ConditionFuncFactory {
 			require.NoError(t, err)
 
 			return itemCountFn(len(secrets.Items), count), nil
+		}
+	}
+}
+
+func areRestricted() helpers.ConditionFuncFactory {
+	return func(
+		t require.TestingT,
+		assert assertion.Assertion,
+		cfg *envconf.Config,
+		count int,
+		itemCountFn, resultFn helpers.IntCompareFunc,
+	) helpers.ConditionFunc {
+		return func(ctx context.Context) (bool, error) {
+			nsList, err := getNamespaces(ctx, t, cfg, assert.ListOptions(cfg))
+			require.NoError(t, err)
+
+			if itemCountFn(len(nsList.Items), count) {
+				return false, nil
+			}
+
+			restrictedCount := 0
+
+			for _, namespace := range nsList.Items {
+				nsLabels := namespace.GetLabels()
+
+				enforceLabel, ok := nsLabels[podSecurityEnforceLabelKey]
+				if ok && enforceLabel == "restricted" {
+					restrictedCount++
+				}
+			}
+
+			return resultFn(restrictedCount, count), nil
 		}
 	}
 }

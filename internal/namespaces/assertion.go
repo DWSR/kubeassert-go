@@ -1,19 +1,13 @@
 package namespaces
 
 import (
-	"context"
-	"testing"
-
-	"github.com/stretchr/testify/require"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
 
 	"github.com/DWSR/kubeassert-go/internal/assertion"
 	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
 )
 
+// NamespaceAssertion is an assertion for Kubernetes Namespaces.
 type NamespaceAssertion struct {
 	assertion.Assertion
 }
@@ -28,28 +22,12 @@ func (na NamespaceAssertion) clone() NamespaceAssertion {
 	}
 }
 
-func (na NamespaceAssertion) getNamespaces(ctx context.Context, t require.TestingT, cfg *envconf.Config) (corev1.NamespaceList, error) {
-	client := helpers.DynamicClientFromEnvconf(t, cfg)
-
-	var nsList corev1.NamespaceList
-
-	list, err := client.Resource(corev1.SchemeGroupVersion.WithResource("namespaces")).List(ctx, na.ListOptions(cfg))
-	if err != nil {
-		return nsList, err
-	}
-
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(list.UnstructuredContent(), &nsList)
-	if err != nil {
-		return nsList, err
-	}
-
-	return nsList, nil
-}
-
+// Exists asserts that exactly one Namespace exists.
 func (na NamespaceAssertion) Exists() NamespaceAssertion {
 	return na.ExactlyNExist(1)
 }
 
+// ExactlyNExist asserts that exactly N Namespaces exist.
 func (na NamespaceAssertion) ExactlyNExist(count int) NamespaceAssertion {
 	stepFn := helpers.AsStepFunc(na, exist(), count, helpers.IntCompareFuncEqualTo, nil)
 
@@ -59,6 +37,7 @@ func (na NamespaceAssertion) ExactlyNExist(count int) NamespaceAssertion {
 	return res
 }
 
+// AtLeastNExist asserts that at least N Namespaces exist.
 func (na NamespaceAssertion) AtLeastNExist(count int) NamespaceAssertion {
 	stepFn := helpers.AsStepFunc(na, exist(), count, helpers.IntCompareFuncGreaterThanOrEqualTo, nil)
 
@@ -68,82 +47,42 @@ func (na NamespaceAssertion) AtLeastNExist(count int) NamespaceAssertion {
 	return res
 }
 
-func (na NamespaceAssertion) AtLeastNAreRestricted(count int) NamespaceAssertion {
-	fn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, na.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			nsList, err := na.getNamespaces(ctx, t, cfg)
-			require.NoError(t, err)
-
-			if len(nsList.Items) < count {
-				return false, nil
-			}
-
-			restrictedCount := 0
-
-			for _, ns := range nsList.Items {
-				nsLabels := ns.GetLabels()
-
-				enforceLabel, ok := nsLabels[podSecurityEnforceLabelKey]
-				if ok && enforceLabel == "restricted" {
-					restrictedCount += 1
-				}
-			}
-
-			return restrictedCount >= count, nil
-		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, na, conditionFunc))
-
-		return ctx
-	}
-
-	res := na.clone()
-	res.SetBuilder(na.GetBuilder().Assess("atLeastNAreRestricted", fn))
-
-	return res
-}
-
+// IsRestricted asserts that exactly one Namespace uses the default "restricted" pod security standard.
 func (na NamespaceAssertion) IsRestricted() NamespaceAssertion {
 	return na.ExactlyNAreRestricted(1)
 }
 
+// ExactlyNAreRestricted asserts that exactly N Namespaces use the default "restricted" pod security standard.
 func (na NamespaceAssertion) ExactlyNAreRestricted(count int) NamespaceAssertion {
-	fn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, na.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			nsList, err := na.getNamespaces(ctx, t, cfg)
-			require.NoError(t, err)
-
-			if len(nsList.Items) < count {
-				return false, nil
-			}
-
-			restrictedCount := 0
-
-			for _, ns := range nsList.Items {
-				nsLabels := ns.GetLabels()
-
-				enforceLabel, ok := nsLabels[podSecurityEnforceLabelKey]
-				if ok && enforceLabel == "restricted" {
-					restrictedCount += 1
-				}
-			}
-
-			return restrictedCount == count, nil
-		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, na, conditionFunc))
-
-		return ctx
-	}
-
+	stepFn := helpers.AsStepFunc(
+		na,
+		areRestricted(),
+		count,
+		helpers.IntCompareFuncNotEqualTo,
+		helpers.IntCompareFuncEqualTo,
+	)
 	res := na.clone()
-	res.SetBuilder(na.GetBuilder().Assess("atLeastNAreRestricted", fn))
+	res.SetBuilder(na.GetBuilder().Assess("exactlyNAreRestricted", stepFn))
 
 	return res
 }
 
+// AtLeastNAreRestricted asserts that at least N Namespaces use the default "restricted" pod security standard.
+func (na NamespaceAssertion) AtLeastNAreRestricted(count int) NamespaceAssertion {
+	stepFn := helpers.AsStepFunc(
+		na,
+		areRestricted(),
+		count,
+		helpers.IntCompareFuncLessThan,
+		helpers.IntCompareFuncGreaterThanOrEqualTo,
+	)
+	res := na.clone()
+	res.SetBuilder(na.GetBuilder().Assess("atLeastNAreRestricted", stepFn))
+
+	return res
+}
+
+// NewNamespaceAssertion creates a new NamespaceAssertion.
 func NewNamespaceAssertion(opts ...assertion.Option) NamespaceAssertion {
 	return NamespaceAssertion{
 		Assertion: assertion.NewAssertion(
