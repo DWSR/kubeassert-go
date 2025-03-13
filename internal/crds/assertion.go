@@ -2,7 +2,6 @@ package crds
 
 import (
 	"context"
-	"testing"
 
 	"github.com/stretchr/testify/require"
 	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -54,36 +53,9 @@ func (ca CRDAssertion) getCRDs(ctx context.Context, t require.TestingT, cfg *env
 }
 
 func (ca CRDAssertion) HasVersion(crdVersion string) CRDAssertion {
-	fn := func(ctx context.Context, testingT *testing.T, cfg *envconf.Config) context.Context {
-		t := helpers.RequireTIfNotNil(testingT, ca.GetRequireT())
-		conditionFunc := func(ctx context.Context) (bool, error) {
-			crds, err := ca.getCRDs(ctx, t, cfg)
-			require.NoError(t, err)
-
-			if len(crds.Items) != 1 {
-				return false, nil
-			}
-
-			foundVersion := false
-
-			for _, version := range crds.Items[0].Spec.Versions {
-				if version.Name == crdVersion {
-					foundVersion = true
-
-					break
-				}
-			}
-
-			return foundVersion, nil
-		}
-
-		require.NoError(t, helpers.WaitForCondition(ctx, ca, conditionFunc))
-
-		return ctx
-	}
-
+	stepFn := helpers.AsStepFunc(ca, hasVersion(crdVersion), 1, helpers.IntCompareFuncEqualTo, nil)
 	res := ca.clone()
-	res.SetBuilder(res.GetBuilder().Assess("hasVersion", fn))
+	res.SetBuilder(res.GetBuilder().Assess("hasVersion", stepFn))
 
 	return res
 }

@@ -2,15 +2,12 @@ package crds
 
 import (
 	"context"
-	"testing"
 
 	"github.com/stretchr/testify/require"
-	corev1 "k8s.io/api/core/v1"
 	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
-	"sigs.k8s.io/e2e-framework/pkg/features"
 
 	"github.com/DWSR/kubeassert-go/internal/assertion"
 	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
