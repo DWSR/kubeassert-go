@@ -1,3 +1,4 @@
+// deployments package contains assertions for Kubernetes Deployments.
 package deployments
 
 import (

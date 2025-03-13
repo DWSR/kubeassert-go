@@ -65,7 +65,8 @@ func (da DeploymentAssertion) ExactlyNAreAvailable(count int) DeploymentAssertio
 	return res
 }
 
-// AtLeastNAreAvailable asserts that at least N Deployments are available in the cluster that match the provided options.
+// AtLeastNAreAvailable asserts that at least N Deployments are available in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) AtLeastNAreAvailable(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -81,8 +82,8 @@ func (da DeploymentAssertion) AtLeastNAreAvailable(count int) DeploymentAssertio
 	return res
 }
 
-// IsSystemClusterCritical asserts that exactly one Deployment is system cluster critical in the cluster that matches the
-// provided options.
+// IsSystemClusterCritical asserts that exactly one Deployment is system cluster critical in the cluster that matches
+// the provided options.
 func (da DeploymentAssertion) IsSystemClusterCritical() DeploymentAssertion {
 	return da.ExactlyNAreSystemClusterCritical(1)
 }
@@ -104,6 +105,8 @@ func (da DeploymentAssertion) ExactlyNAreSystemClusterCritical(count int) Deploy
 	return res
 }
 
+// AtLeastNAreSystemClusterCritical asserts that at least N Deployments are system cluster critical in the cluster that
+// match the provided options.
 func (da DeploymentAssertion) AtLeastNAreSystemClusterCritical(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -119,10 +122,13 @@ func (da DeploymentAssertion) AtLeastNAreSystemClusterCritical(count int) Deploy
 	return res
 }
 
+// HasNoCPULimits asserts that exactly one Deployment has no CPU limits in the cluster that match the provided options.
 func (da DeploymentAssertion) HasNoCPULimits() DeploymentAssertion {
 	return da.ExactlyNHaveNoCPULimits(1)
 }
 
+// ExactlyNHaveNoCPULimits asserts that exactly N Deployments have no CPU limits in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) ExactlyNHaveNoCPULimits(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -138,6 +144,8 @@ func (da DeploymentAssertion) ExactlyNHaveNoCPULimits(count int) DeploymentAsser
 	return res
 }
 
+// AtLeastNHaveNoCPULimits asserts that at least N Deployments have no CPU limits in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) AtLeastNHaveNoCPULimits(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -153,10 +161,14 @@ func (da DeploymentAssertion) AtLeastNHaveNoCPULimits(count int) DeploymentAsser
 	return res
 }
 
+// HasMemoryLimitsEqualToRequests asserts that exactly one Deployment has memory limits set equal to requests in the
+// cluster that match the provided options.
 func (da DeploymentAssertion) HasMemoryLimitsEqualToRequests() DeploymentAssertion {
 	return da.ExactlyNHaveMemoryLimitsEqualToRequests(1)
 }
 
+// ExactlyNHaveMemoryLimitsEqualToRequests asserts that exactly N Deployments have memory limits set equal to requests
+// in the cluster that match the provided options.
 func (da DeploymentAssertion) ExactlyNHaveMemoryLimitsEqualToRequests(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -172,6 +184,8 @@ func (da DeploymentAssertion) ExactlyNHaveMemoryLimitsEqualToRequests(count int)
 	return res
 }
 
+// AtLeastNHaveMemoryLimitsEqualToRequests asserts that at least N Deployments have memory limits set equal to requests
+// in the cluster that match the provided options.
 func (da DeploymentAssertion) AtLeastNHaveMemoryLimitsEqualToRequests(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -187,10 +201,13 @@ func (da DeploymentAssertion) AtLeastNHaveMemoryLimitsEqualToRequests(count int)
 	return res
 }
 
+// HasMemoryLimits asserts that exactly one Deployment has memory limits in the cluster that match the provided options.
 func (da DeploymentAssertion) HasMemoryLimits() DeploymentAssertion {
 	return da.ExactlyNHaveMemoryLimits(1)
 }
 
+// ExactlyNHaveMemoryLimits asserts that exactly N Deployments have memory limits in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) ExactlyNHaveMemoryLimits(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -206,6 +223,8 @@ func (da DeploymentAssertion) ExactlyNHaveMemoryLimits(count int) DeploymentAsse
 	return res
 }
 
+// AtLeastNHaveMemoryLimits asserts that at least N Deployments have memory limits in the cluster that match the
+// provided options.
 func (da DeploymentAssertion) AtLeastNHaveMemoryLimits(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -221,10 +240,14 @@ func (da DeploymentAssertion) AtLeastNHaveMemoryLimits(count int) DeploymentAsse
 	return res
 }
 
+// HasMemoryRequests asserts that exactly one Deployment has memory requests in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) HasMemoryRequests() DeploymentAssertion {
 	return da.ExactlyNHaveMemoryRequests(1)
 }
 
+// ExactlyNHaveMemoryRequests asserts that exactly N Deployments have memory requests in the cluster that match the
+// provided options.
 func (da DeploymentAssertion) ExactlyNHaveMemoryRequests(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -240,6 +263,8 @@ func (da DeploymentAssertion) ExactlyNHaveMemoryRequests(count int) DeploymentAs
 	return res
 }
 
+// AtLeastNHaveMemoryRequests asserts that at least N Deployments have memory requests in the cluster that match the
+// provided options.
 func (da DeploymentAssertion) AtLeastNHaveMemoryRequests(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -255,10 +280,13 @@ func (da DeploymentAssertion) AtLeastNHaveMemoryRequests(count int) DeploymentAs
 	return res
 }
 
+// HasCPURequests asserts that exactly one Deployment has CPU requests in the cluster that match the provided options.
 func (da DeploymentAssertion) HasCPURequests() DeploymentAssertion {
 	return da.ExactlyNHaveCPURequests(1)
 }
 
+// ExactlyNHaveCPURequests asserts that exactly N Deployments have CPU requests in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) ExactlyNHaveCPURequests(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -274,6 +302,8 @@ func (da DeploymentAssertion) ExactlyNHaveCPURequests(count int) DeploymentAsser
 	return res
 }
 
+// AtLeastNHaveCPURequests asserts that at least N Deployments have CPU requests in the cluster that match the provided
+// options.
 func (da DeploymentAssertion) AtLeastNHaveCPURequests(count int) DeploymentAssertion {
 	stepFn := helpers.AsStepFunc(
 		da,
@@ -289,6 +319,7 @@ func (da DeploymentAssertion) AtLeastNHaveCPURequests(count int) DeploymentAsser
 	return res
 }
 
+// NewDeploymentAssertion creates a new DeploymentAssertion with the provided options.
 func NewDeploymentAssertion(opts ...assertion.Option) DeploymentAssertion {
 	return DeploymentAssertion{
 		Assertion: assertion.NewAssertion(
