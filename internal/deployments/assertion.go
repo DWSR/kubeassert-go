@@ -1,12 +1,6 @@
 package deployments
 
 import (
-	"context"
-
-	"github.com/stretchr/testify/require"
-	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/features"
 
 	"github.com/DWSR/kubeassert-go/internal/assertion"
