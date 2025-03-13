@@ -63,13 +63,13 @@ func Test_3Pod_Success(t *testing.T) {
 		},
 	}
 
-	features := make([]features.Feature, 0)
+	tests := make([]features.Feature, 0)
 
 	for _, a := range testCases {
-		features = append(features, assertion.AsFeature(a.assertion))
+		tests = append(tests, assertion.AsFeature(a.assertion))
 	}
 
-	testEnv.TestInParallel(t, features...)
+	testEnv.TestInParallel(t, tests...)
 }
 
 func Test_3Pod_Fail(t *testing.T) {

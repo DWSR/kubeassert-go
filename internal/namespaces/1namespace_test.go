@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/e2e-framework/klient/decoder"
+	"sigs.k8s.io/e2e-framework/pkg/envconf"
+
 	"github.com/DWSR/kubeassert-go/internal/assertion"
 	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
 	"github.com/DWSR/kubeassert-go/internal/namespaces"
 	"github.com/DWSR/kubeassert-go/internal/testhelpers"
-	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/e2e-framework/klient/decoder"
-	"sigs.k8s.io/e2e-framework/pkg/envconf"
 )
 
 func Test_1Namespace_Success(t *testing.T) {

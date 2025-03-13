@@ -1,3 +1,7 @@
+// kubeassert provides a set of assertion helpers for testing Kubernetes resources. It extends the e2e-framework
+// package with a set of predefined assertions (e.g. a Deployment is ready) as well as additional helper functionality.
+//
+//revive:disable:exported
 package kubeassert
 
 import (
@@ -15,6 +19,7 @@ type (
 	NamespaceAssertion  = namespaces.NamespaceAssertion
 	CRDAssertion        = crds.CRDAssertion
 	PodAssertion        = pods.PodAssertion
+	SecretAssertion     = secrets.SecretAssertion
 )
 
 var (

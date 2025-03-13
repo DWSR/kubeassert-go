@@ -7,6 +7,7 @@ import (
 	helpers "github.com/DWSR/kubeassert-go/internal/assertionhelpers"
 )
 
+// PDBAssertion is a wrapper around assertion.Assertion that provides additional functionality for PodDisruptionBudgets.
 type PDBAssertion struct {
 	assertion.Assertion
 }
