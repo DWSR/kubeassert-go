@@ -1,3 +1,4 @@
+// crds contains assertions for CustomResourceDefinitions.
 package crds
 
 import (

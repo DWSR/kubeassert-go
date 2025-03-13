@@ -53,7 +53,7 @@ func (ca CRDAssertion) getCRDs(ctx context.Context, t require.TestingT, cfg *env
 }
 
 func (ca CRDAssertion) HasVersion(crdVersion string) CRDAssertion {
-	stepFn := helpers.AsStepFunc(ca, hasVersion(crdVersion), 1, helpers.IntCompareFuncEqualTo, nil)
+	stepFn := helpers.AsStepFunc(ca, hasVersion(crdVersion), 1, helpers.IntCompareFuncNotEqualTo, helpers.IntCompareFuncEqualTo)
 	res := ca.clone()
 	res.SetBuilder(res.GetBuilder().Assess("hasVersion", stepFn))
 
