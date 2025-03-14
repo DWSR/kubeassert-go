@@ -1,0 +1,4 @@
+[tools]
+go = "latest"
+"go:github.com/mitranim/gow" = "latest"
+"go:gotest.tools/gotestsum" = "latest"
