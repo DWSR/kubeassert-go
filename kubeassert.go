@@ -15,6 +15,7 @@ import (
 )
 
 type (
+	Assertion           = assertion.Assertion
 	DeploymentAssertion = deployments.DeploymentAssertion
 	NamespaceAssertion  = namespaces.NamespaceAssertion
 	CRDAssertion        = crds.CRDAssertion
