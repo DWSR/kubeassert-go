@@ -10,6 +10,7 @@ import (
 	"github.com/DWSR/kubeassert-go/internal/crds"
 	"github.com/DWSR/kubeassert-go/internal/deployments"
 	"github.com/DWSR/kubeassert-go/internal/namespaces"
+	"github.com/DWSR/kubeassert-go/internal/pdbs"
 	"github.com/DWSR/kubeassert-go/internal/pods"
 	"github.com/DWSR/kubeassert-go/internal/secrets"
 )
@@ -19,6 +20,7 @@ type (
 	DeploymentAssertion = deployments.DeploymentAssertion
 	NamespaceAssertion  = namespaces.NamespaceAssertion
 	CRDAssertion        = crds.CRDAssertion
+	PDBAssertion        = pdbs.PDBAssertion
 	PodAssertion        = pods.PodAssertion
 	SecretAssertion     = secrets.SecretAssertion
 )
@@ -39,6 +41,7 @@ var (
 	NewDeploymentAssertion = deployments.NewDeploymentAssertion
 	NewNamespaceAssertion  = namespaces.NewNamespaceAssertion
 	NewCRDAssertion        = crds.NewCRDAssertion
+	NewPDBAssertion        = pdbs.NewPDBAssertion
 	NewPodAssertion        = pods.NewPodAssertion
 	NewSecretAssertion     = secrets.NewSecretAssertion
 
